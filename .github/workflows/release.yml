@@ -37,20 +37,34 @@ jobs:
         run: echo ${{ steps.tag.outputs.new_tag }} > version
 
       - name: Generate CI token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.CI_BOT_APP_ID }}
           private-key: ${{ secrets.CI_BOT_APP_SECRET }}
 
-      - name: Push Tag
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+      # git commands like commit work using the bot user
+#      - run: |
+#          git add .
+#          git commit -m "Auto-generated changes"
+#          git push
+
+      - name: Push Tag
+#        env:
+#          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          echo ${{ steps.app-token.outputs.token }}
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+#          echo ${{ steps.app-token.outputs.token }}
+#          git config user.name "github-actions[bot]"
+#          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "[skip ci] version update"
           git push origin
