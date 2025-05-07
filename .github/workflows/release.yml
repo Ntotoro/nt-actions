@@ -32,6 +32,10 @@ jobs:
           PRERELEASE_SUFFIX: p
           DRY_RUN: true
 
+      - name: Update version
+        shell: bash
+        run: echo ${{ steps.tag.outputs.new_tag }} > version
+
       - name: Generate CI token
         uses: actions/create-github-app-token@v1
         id: app-token
@@ -42,7 +46,7 @@ jobs:
       - name: Push Tag
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
+        run: |        
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
