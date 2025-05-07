@@ -13,7 +13,8 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: '0'
           ref: ${{ github.ref }}
@@ -31,21 +32,22 @@ jobs:
           PRERELEASE_SUFFIX: p
           DRY_RUN: true
 
-      - uses: actions/create-github-app-token@v1
+      - name: Generate CI token
+        uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ vars.CI_BOT_APP_ID }}
           private-key: ${{ secrets.CI_BOT_APP_SECRET }}
 
-      - name: Tag
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "[skip ci] version update"
-          git push origin
-          
-          git tag ${{ steps.tag.outputs.new_tag }}
-          git push origin ${{ steps.tag.outputs.new_tag }}
+#      - name: Push Tag
+#        run: |
+#          git config user.name "github-actions[bot]"
+#          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+#          git add .
+#          git commit -m "[skip ci] version update"
+#          git push origin
+#
+#          git tag ${{ steps.tag.outputs.new_tag }}
+#          git push origin ${{ steps.tag.outputs.new_tag }}
+#        with:
+#          token: ${{ steps.app-token.outputs.token }}
