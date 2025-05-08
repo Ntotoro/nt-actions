@@ -13,17 +13,27 @@ jobs:
       contents: write
 
     steps:
+      - name: Generate CI token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.CI_BOT_APP_ID }}
+          private-key: ${{ secrets.CI_BOT_APP_SECRET }}
+          permission-contents: write
+
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: '0'
           ref: ${{ github.ref }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Get next tag
         id: tag
         uses: anothrNick/github-tag-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           WITH_V: true
           INITIAL_VERSION: 0.1.0
           DEFAULT_BUMP: minor
@@ -35,14 +45,6 @@ jobs:
       - name: Update version
         shell: bash
         run: echo ${{ steps.tag.outputs.new_tag }} > version
-
-      - name: Generate CI token
-        uses: actions/create-github-app-token@v2
-        id: app-token
-        with:
-          app-id: ${{ vars.CI_BOT_APP_ID }}
-          private-key: ${{ secrets.CI_BOT_APP_SECRET }}
-          permission-contents: write
 
       - name: Get GitHub App User ID
         id: get-user-id
